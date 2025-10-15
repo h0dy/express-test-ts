@@ -1,11 +1,16 @@
 import { Request, Response } from "express";
-import { createUser, getUserByEmail } from "../db/queries/users.js";
-import { BadRequestErr, UserNotAuthenticatedErr } from "./errors.js";
-import { checkPasswordHash, hashPassword } from "../auth/password.js";
-import { NewUser } from "../db/schema.js";
-import { makeJWT, makeRefreshToken } from "../auth/jwt.js";
-import { config } from "../config.js";
-import { createRefreshToken } from "../db/queries/refreshTokens.js";
+import {
+  createUser,
+  getUserByEmail,
+  updateUser,
+} from "../../db/queries/users.js";
+import { BadRequestErr, UserNotAuthenticatedErr } from "../errors.js";
+import { checkPasswordHash, hashPassword } from "../../auth/password.js";
+import { NewUser } from "../../db/schema.js";
+import { makeJWT, makeRefreshToken, validateJWT } from "../../auth/jwt.js";
+import { config } from "../../config.js";
+import { createRefreshToken } from "../../db/queries/refreshTokens.js";
+import { getBearerToken } from "../../auth/authHeader.js";
 
 type UserRequestBody = {
   email: string;
@@ -65,4 +70,21 @@ export const handlerLoginUser = async (req: Request, res: Response) => {
     refreshToken: refreshTokenRecord.token,
   } satisfies UserResponse & { token: string; refreshToken: string });
   return;
+};
+
+export const handlerUpdateUser = async (req: Request, res: Response) => {
+  const { email, password }: UserRequestBody = req.body;
+  const accessToken = getBearerToken(req);
+  const userId = validateJWT(accessToken, config.jwt.secret);
+
+  const hashedPassword = await hashPassword(password);
+  const updatedUser = await updateUser(email, hashedPassword, userId);
+  if (!updatedUser) throw new UserNotAuthenticatedErr("incorrect credential");
+
+  res.status(200).json({
+    id: updatedUser.id,
+    email: updatedUser.email,
+    createdAt: updatedUser.createdAt,
+    updatedAt: updatedUser.updatedAt,
+  } satisfies UserResponse);
 };

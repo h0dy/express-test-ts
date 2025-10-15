@@ -1,9 +1,14 @@
 import { Request, Response } from "express";
-import { BadRequestErr } from "./errors.js";
-import { createChirp, getAllChirps, getChirp } from "../db/queries/chirps.js";
-import { getBearerToken } from "../auth/authHeader.js";
-import { validateJWT } from "../auth/jwt.js";
-import { config } from "../config.js";
+import { BadRequestErr, NotFoundErr, UserForbiddenErr } from "../errors.js";
+import {
+  createChirp,
+  deleteChirp,
+  getAllChirps,
+  getChirp,
+} from "../../db/queries/chirps.js";
+import { getBearerToken } from "../../auth/authHeader.js";
+import { validateJWT } from "../../auth/jwt.js";
+import { config } from "../../config.js";
 
 // manually parsing json requests
 export const handlerValidateChirpManually = (req: Request, res: Response) => {
@@ -82,7 +87,7 @@ export const handlerCreateChirp = async (req: Request, res: Response) => {
   res.status(201).json({ ...chirp });
 };
 
-export const handlerGetAllChirps = async (req: Request, res: Response) => {
+export const handlerGetAllChirps = async (_: Request, res: Response) => {
   const chirps = await getAllChirps();
   res.status(200).json([...chirps]);
 };
@@ -91,7 +96,22 @@ export const handlerGetChirp = async (req: Request, res: Response) => {
   const chirpId = req.params.chirpID;
   const chirp = await getChirp(chirpId);
   if (!chirp) {
-    throw new BadRequestErr("chirp not found");
+    throw new NotFoundErr("chirp not found");
   }
   res.status(200).json({ ...chirp });
+};
+
+export const handlerDeleteChirp = async (req: Request, res: Response) => {
+  const chirpId = req.params.chirpID;
+  const accessToken = getBearerToken(req);
+  const userId = validateJWT(accessToken, config.jwt.secret);
+  const chirp = await getChirp(chirpId);
+  if (!chirp) {
+    throw new NotFoundErr("chirp doesn't exist");
+  }
+  if (chirp.userId !== userId) {
+    throw new UserForbiddenErr("Forbidden");
+  }
+  await deleteChirp(chirpId);
+  res.status(204).send();
 };

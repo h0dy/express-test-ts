@@ -1,12 +1,12 @@
 import { Request, Response } from "express";
-import { getBearerToken } from "../auth/authHeader.js";
+import { getBearerToken } from "../../auth/authHeader.js";
 import {
   revokeRefreshToken,
   userForRefreshToken,
-} from "../db/queries/refreshTokens.js";
-import { UserNotAuthenticatedErr } from "./errors.js";
-import { makeJWT } from "../auth/jwt.js";
-import { config } from "../config.js";
+} from "../../db/queries/refreshTokens.js";
+import { UserNotAuthenticatedErr } from ".././errors.js";
+import { makeJWT } from "../../auth/jwt.js";
+import { config } from "../../config.js";
 
 export const handlerRefreshToken = async (req: Request, res: Response) => {
   const token = getBearerToken(req);

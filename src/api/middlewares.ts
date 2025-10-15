@@ -33,9 +33,9 @@ export const middlewareMetricsInc = (
 
 export const errorMiddleware = (
   err: Error,
-  req: Request,
+  _: Request,
   res: Response,
-  next: NextFunction
+  __: NextFunction
 ) => {
   let statusCode = 500;
   let message = "Something went wrong on our end";

@@ -1,5 +1,5 @@
 import type { Request, Response } from "express";
-import { config } from "../config.js";
+import { config } from "../../config.js";
 
 export const handlerMetric = async (req: Request, res: Response) => {
   res.set({

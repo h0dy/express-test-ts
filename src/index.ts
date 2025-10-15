@@ -1,23 +1,31 @@
 import express, { Request, Response } from "express";
-import { handlerReadiness } from "./api/readiness.js";
+import { handlerReadiness } from "./api/handlers/readiness.js";
 import {
   errorMiddleware,
   middlewareLogResponses,
   middlewareMetricsInc,
 } from "./api/middlewares.js";
-import { handlerMetric } from "./api/metricInc.js";
-import { handlerResetMetric } from "./api/reset.js";
+import { handlerMetric } from "./api/handlers/metricInc.js";
+import { handlerResetMetric } from "./api/handlers/reset.js";
 import {
   handlerCreateChirp,
   handlerGetAllChirps,
   handlerGetChirp,
-} from "./api/chirps.js";
+  handlerDeleteChirp,
+} from "./api/handlers/chirps.js";
 import postgres from "postgres";
 import { migrate } from "drizzle-orm/postgres-js/migrator";
 import { drizzle } from "drizzle-orm/postgres-js";
 import { config } from "./config.js";
-import { handlerCreateUser, handlerLoginUser } from "./api/users.js";
-import { handlerRefreshToken, handlerRevokeToken } from "./api/refreshToken.js";
+import {
+  handlerCreateUser,
+  handlerLoginUser,
+  handlerUpdateUser,
+} from "./api/handlers/users.js";
+import {
+  handlerRefreshToken,
+  handlerRevokeToken,
+} from "./api/handlers/refreshToken.js";
 
 const migrationClient = postgres(config.db.url, { max: 1 });
 await migrate(drizzle(migrationClient), config.db.migrationConfig); // auto migrate
@@ -59,6 +67,12 @@ app.post("/api/refresh", (req, res, next) => {
 });
 app.post("/api/revoke", (req, res, next) => {
   Promise.resolve(handlerRevokeToken(req, res)).catch(next);
+});
+app.put("/api/users", (req, res, next) => {
+  Promise.resolve(handlerUpdateUser(req, res)).catch(next);
+});
+app.delete("/api/chirps/:chirpID", (req, res, next) => {
+  Promise.resolve(handlerDeleteChirp(req, res)).catch(next);
 });
 
 app.get("/", (_: Request, res: Response) => {
