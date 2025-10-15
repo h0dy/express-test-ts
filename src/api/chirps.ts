@@ -1,5 +1,9 @@
 import { Request, Response } from "express";
 import { BadRequestErr } from "./errors.js";
+import { createChirp, getAllChirps, getChirp } from "../db/queries/chirps.js";
+import { getBearerToken } from "../auth/authHeader.js";
+import { validateJWT } from "../auth/jwt.js";
+import { config } from "../config.js";
 
 // manually parsing json requests
 export const handlerValidateChirpManually = (req: Request, res: Response) => {
@@ -37,28 +41,6 @@ export const handlerValidateChirpManually = (req: Request, res: Response) => {
   });
 };
 
-export const handlerValidateChirp = (req: Request, res: Response) => {
-  type requestBody = {
-    body: string;
-  };
-
-  let data: requestBody = req.body;
-  const maxChirpLength = 140;
-  if (data.body.length > maxChirpLength) {
-    // res.status(400).json({
-    //   error: "Chirp is too long",
-    // });
-    // return;
-    throw new BadRequestErr(
-      `Chirp is too long. Max length is ${maxChirpLength}`
-    );
-  }
-  const cleanedBody = cleanProfane(data.body);
-  res.status(200).json({
-    cleanedBody,
-  });
-};
-
 const cleanProfane = (text: string) => {
   const profaneWords = ["kerfuffle", "sharbert", "fornax"];
   const cleanText = text.split(" ").map((word) => {
@@ -68,4 +50,48 @@ const cleanProfane = (text: string) => {
     return word;
   });
   return cleanText.join(" ");
+};
+
+export const handlerCreateChirp = async (req: Request, res: Response) => {
+  type requestBody = {
+    body: string;
+  };
+
+  const token = getBearerToken(req);
+  const userId = validateJWT(token, config.jwt.secret);
+
+  let data: requestBody = req.body;
+  const maxChirpLength = 140;
+
+  if (!data.body || !userId) {
+    throw new BadRequestErr("Missing required fields");
+  }
+  if (data.body.length > maxChirpLength) {
+    throw new BadRequestErr(
+      `Chirp is too long. Max length is ${maxChirpLength}`
+    );
+  }
+
+  const cleanedBody = cleanProfane(data.body);
+
+  const chirp = await createChirp({
+    body: cleanedBody,
+    userId,
+  });
+
+  res.status(201).json({ ...chirp });
+};
+
+export const handlerGetAllChirps = async (req: Request, res: Response) => {
+  const chirps = await getAllChirps();
+  res.status(200).json([...chirps]);
+};
+
+export const handlerGetChirp = async (req: Request, res: Response) => {
+  const chirpId = req.params.chirpID;
+  const chirp = await getChirp(chirpId);
+  if (!chirp) {
+    throw new BadRequestErr("chirp not found");
+  }
+  res.status(200).json({ ...chirp });
 };

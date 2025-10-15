@@ -1,7 +1,7 @@
 import type { Request, Response } from "express";
 import { config } from "../config.js";
 
-export const handlerMentric = async (req: Request, res: Response) => {
+export const handlerMetric = async (req: Request, res: Response) => {
   res.set({
     "Content-Type": "text/html",
     charset: "utf-8",
@@ -10,7 +10,7 @@ export const handlerMentric = async (req: Request, res: Response) => {
 
 <body>
   <h1>Welcome, Chirpy Admin</h1>
-  <p>Chirpy has been visited ${config.fileserverHits} times!</p>
+  <p>Chirpy has been visited ${config.api.fileServerHits} times!</p>
 </body>
 
 </html>`);

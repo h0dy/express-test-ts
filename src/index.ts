@@ -5,11 +5,22 @@ import {
   middlewareLogResponses,
   middlewareMetricsInc,
 } from "./api/middlewares.js";
-import { handlerMentric } from "./api/metricInc.js";
+import { handlerMetric } from "./api/metricInc.js";
 import { handlerResetMetric } from "./api/reset.js";
-import { handlerValidateChirp } from "./api/chirps.js";
+import {
+  handlerCreateChirp,
+  handlerGetAllChirps,
+  handlerGetChirp,
+} from "./api/chirps.js";
+import postgres from "postgres";
+import { migrate } from "drizzle-orm/postgres-js/migrator";
+import { drizzle } from "drizzle-orm/postgres-js";
+import { config } from "./config.js";
+import { handlerCreateUser, handlerLoginUser } from "./api/users.js";
+import { handlerRefreshToken, handlerRevokeToken } from "./api/refreshToken.js";
 
-const PORT = 8080;
+const migrationClient = postgres(config.db.url, { max: 1 });
+await migrate(drizzle(migrationClient), config.db.migrationConfig); // auto migrate
 const app = express();
 
 app.use(express.json()); // middleware to automatically parse json body
@@ -21,13 +32,33 @@ app.get("/api/healthz", (req, res, next) => {
   Promise.resolve(handlerReadiness(req, res)).catch(next);
 });
 app.get("/admin/metrics", (req, res, next) => {
-  Promise.resolve(handlerMentric(req, res)).catch(next);
+  Promise.resolve(handlerMetric(req, res)).catch(next);
 });
 app.post("/admin/reset", (req, res, next) => {
   Promise.resolve(handlerResetMetric(req, res)).catch(next);
 });
-app.post("/api/validate_chirp", (req, res, next) => {
-  Promise.resolve(handlerValidateChirp(req, res)).catch(next);
+
+app.post("/api/users", (req, res, next) => {
+  Promise.resolve(handlerCreateUser(req, res)).catch(next);
+});
+
+app.post("/api/chirps", (req, res, next) => {
+  Promise.resolve(handlerCreateChirp(req, res)).catch(next);
+});
+app.get("/api/chirps", (req, res, next) => {
+  Promise.resolve(handlerGetAllChirps(req, res)).catch(next);
+});
+app.get("/api/chirps/:chirpID", (req, res, next) => {
+  Promise.resolve(handlerGetChirp(req, res)).catch(next);
+});
+app.post("/api/login", (req, res, next) => {
+  Promise.resolve(handlerLoginUser(req, res)).catch(next);
+});
+app.post("/api/refresh", (req, res, next) => {
+  Promise.resolve(handlerRefreshToken(req, res)).catch(next);
+});
+app.post("/api/revoke", (req, res, next) => {
+  Promise.resolve(handlerRevokeToken(req, res)).catch(next);
 });
 
 app.get("/", (_: Request, res: Response) => {
@@ -36,6 +67,6 @@ app.get("/", (_: Request, res: Response) => {
 
 app.use(errorMiddleware);
 
-app.listen(PORT, () => {
-  console.log(`Serving at ${PORT}`);
+app.listen(config.api.port, () => {
+  console.log(`Serving at ${config.api.port}`);
 });
