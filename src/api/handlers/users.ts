@@ -37,6 +37,7 @@ export const handlerCreateUser = async (req: Request, res: Response) => {
     email: newUser.email,
     createdAt: newUser.createdAt,
     updatedAt: newUser.updatedAt,
+    isChirpyRed: newUser.isChirpyRed,
   } satisfies UserResponse);
 };
 
@@ -68,6 +69,7 @@ export const handlerLoginUser = async (req: Request, res: Response) => {
     updatedAt: user.updatedAt,
     token: accessToken,
     refreshToken: refreshTokenRecord.token,
+    isChirpyRed: user.isChirpyRed,
   } satisfies UserResponse & { token: string; refreshToken: string });
   return;
 };
@@ -86,5 +88,6 @@ export const handlerUpdateUser = async (req: Request, res: Response) => {
     email: updatedUser.email,
     createdAt: updatedUser.createdAt,
     updatedAt: updatedUser.updatedAt,
+    isChirpyRed: updatedUser.isChirpyRed,
   } satisfies UserResponse);
 };

@@ -12,3 +12,15 @@ export const getBearerToken = (req: Request) => {
   }
   return authToken;
 };
+
+export const getAPIKey = (req: Request) => {
+  const authHeader = req.get("Authorization");
+  if (!authHeader) {
+    throw new UserNotAuthenticatedErr("no auth header included in request");
+  }
+  const APIKey = authHeader.replace("ApiKey", "").trim();
+  if (!APIKey) {
+    throw new UserNotAuthenticatedErr("no API key is provided");
+  }
+  return APIKey;
+};

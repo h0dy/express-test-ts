@@ -13,6 +13,7 @@ type APIConfig = {
   fileServerHits: number;
   port: number;
   platform: string;
+  polkaKey: string;
 };
 type JWTConfig = {
   secret: string;
@@ -35,6 +36,7 @@ export const config: Config = {
     fileServerHits: 0,
     port: Number(envOrErr("PORT")),
     platform: envOrErr("PLATFORM"),
+    polkaKey: envOrErr("POLKA_KEY"),
   },
   db: {
     url: envOrErr("DB_URL"),

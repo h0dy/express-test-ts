@@ -29,6 +29,13 @@
       "when": 1760546144130,
       "tag": "0003_red_mole_man",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1760568422199,
+      "tag": "0004_slippery_mantis",
+      "breakpoints": true
     }
   ]
 }

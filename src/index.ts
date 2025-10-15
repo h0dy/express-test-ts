@@ -26,6 +26,7 @@ import {
   handlerRefreshToken,
   handlerRevokeToken,
 } from "./api/handlers/refreshToken.js";
+import { handlerPolkaWebhook } from "./api/handlers/webhooks.js";
 
 const migrationClient = postgres(config.db.url, { max: 1 });
 await migrate(drizzle(migrationClient), config.db.migrationConfig); // auto migrate
@@ -73,6 +74,10 @@ app.put("/api/users", (req, res, next) => {
 });
 app.delete("/api/chirps/:chirpID", (req, res, next) => {
   Promise.resolve(handlerDeleteChirp(req, res)).catch(next);
+});
+
+app.post("/api/polka/webhooks", (req, res, next) => {
+  Promise.resolve(handlerPolkaWebhook(req, res)).catch(next);
 });
 
 app.get("/", (_: Request, res: Response) => {
