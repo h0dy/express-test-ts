@@ -1,4 +1,4 @@
-import { asc, eq } from "drizzle-orm";
+import { asc, eq, InferSelectModel } from "drizzle-orm";
 import { db } from "../index.js";
 import { NewChirp, chirps } from "../schema.js";
 
@@ -7,8 +7,12 @@ export const createChirp = async (chirp: NewChirp) => {
   return result;
 };
 
-export const getAllChirps = async (): Promise<NewChirp[]> => {
-  const result = await db.select().from(chirps).orderBy(asc(chirps.createdAt));
+export const getAllChirps = async (authorId?: string): Promise<NewChirp[]> => {
+  const result = await db
+    .select()
+    .from(chirps)
+    .where(authorId ? eq(chirps.userId, authorId) : undefined)
+    .orderBy(asc(chirps.createdAt));
   return result;
 };
 

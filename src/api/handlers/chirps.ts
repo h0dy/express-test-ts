@@ -87,8 +87,29 @@ export const handlerCreateChirp = async (req: Request, res: Response) => {
   res.status(201).json({ ...chirp });
 };
 
-export const handlerGetAllChirps = async (_: Request, res: Response) => {
-  const chirps = await getAllChirps();
+export const handlerGetAllChirps = async (req: Request, res: Response) => {
+  let authorId = "";
+  let authorIdQuery = req.query.authorId;
+  if (typeof authorIdQuery === "string") {
+    authorId = authorIdQuery;
+  }
+
+  let sortChirps = "asc";
+  let sortChirpsParam = req.query.sort;
+  if (sortChirpsParam === "desc") {
+    sortChirps = "desc";
+  }
+
+  const chirps = await getAllChirps(authorId);
+
+  if (sortChirps === "desc") {
+    chirps.sort((a, b) => {
+      if (!a.createdAt || !b.createdAt) return 0;
+      if (a.createdAt.getTime() < b.createdAt.getTime()) return 1;
+      if (a.createdAt.getTime() > b.createdAt.getTime()) return -1;
+      return 0;
+    });
+  }
   res.status(200).json([...chirps]);
 };
 
